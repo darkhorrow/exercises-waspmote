@@ -9,3 +9,4 @@ void strip_extra_spaces(char* str) {
     str[x] = '\0';
   }
 }
+

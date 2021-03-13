@@ -1,9 +1,9 @@
 enum COMMAND {
-    RED_ON, RED_OFF, GREEN_ON, GREEN_OFF
+    RED_ON, RED_OFF, GREEN_ON, GREEN_OFF, HELP
 };
 
 static const char *COMMAND_STRING[] = {
-    "red on", "red off", "green on", "green off"
+    "red on", "red off", "green on", "green off", "help"
 };
 
 void read_USB_command(char *term, size_t msz) {
@@ -20,7 +20,7 @@ void read_USB_command(char *term, size_t msz) {
   term[sz] = 0;
 }
 
-int8_t exec_command_read(char *command_buffer) {
+void exec_command_read(char *command_buffer) {
   strip_extra_spaces(strlwr(command_buffer));
   
   if(!strcmp(COMMAND_STRING[RED_ON], command_buffer)) {
@@ -35,9 +35,25 @@ int8_t exec_command_read(char *command_buffer) {
   } else if(!strcmp(COMMAND_STRING[GREEN_OFF], command_buffer)) {
     Utils.setLED(LED1, LED_OFF);
     USB.println("Green LED OFF");
+  } else if(!strcmp(COMMAND_STRING[HELP], command_buffer)) {
+    help();
   } else {
-    USB.print("Command '");
-    USB.print(strlwr(command_buffer));
-    USB.println("' not available.");
+    USB.print("Command '"); USB.print(strlwr(command_buffer)); USB.println("' not available.");
+    help();
   }
 }
+
+void help() {
+  USB.println();
+  USB.println("========================================================================");
+  USB.println("| Available commands                                                   |");
+  USB.println("========================================================================");
+  USB.println("| red on\tTurns on the red LED on the Waspmote                   |");
+  USB.println("| red off\tTurns off the red LED on the Waspmote                  |");
+  USB.println("| green on\tTurns on the green LED on the Waspmote                 |");
+  USB.println("| green off\tTurns off the red LED on the Waspmote                  |");
+  USB.println("| help\t\tDisplays the allowed commands and its parameters       |");
+  USB.println("========================================================================");
+  USB.println();
+}
+
