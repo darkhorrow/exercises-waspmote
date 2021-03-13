@@ -21,19 +21,18 @@ void read_USB_command(char *term, size_t msz) {
 }
 
 int8_t exec_command_read(char *command_buffer) {
-  char* buffer_treated = strlwr(command_buffer);
-  strip_extra_spaces(buffer_treated);
+  strip_extra_spaces(strlwr(command_buffer));
   
-  if(!strcmp(COMMAND_STRING[RED_ON], buffer_treated)) {
+  if(!strcmp(COMMAND_STRING[RED_ON], command_buffer)) {
     Utils.setLED(LED0, LED_ON);
     USB.println("Red LED ON");
-  } else if(!strcmp(COMMAND_STRING[RED_OFF], buffer_treated)) {
+  } else if(!strcmp(COMMAND_STRING[RED_OFF], command_buffer)) {
     Utils.setLED(LED0, LED_OFF);
     USB.println("Red LED OFF");
-  } else if(!strcmp(COMMAND_STRING[GREEN_ON], buffer_treated)) {
+  } else if(!strcmp(COMMAND_STRING[GREEN_ON], command_buffer)) {
     Utils.setLED(LED1, LED_ON);
     USB.println("Green LED ON");
-  } else if(!strcmp(COMMAND_STRING[GREEN_OFF], buffer_treated)) {
+  } else if(!strcmp(COMMAND_STRING[GREEN_OFF], command_buffer)) {
     Utils.setLED(LED1, LED_OFF);
     USB.println("Green LED OFF");
   } else {
