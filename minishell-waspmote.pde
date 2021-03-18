@@ -3,6 +3,7 @@ char command_buffer[BUFFER_SIZE];
 
 void setup() {
   USB.ON();
+  help();
 }
 
 void loop() {
