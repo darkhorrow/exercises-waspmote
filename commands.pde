@@ -1,9 +1,9 @@
 enum COMMAND {
-    RED_ON, RED_OFF, GREEN_ON, GREEN_OFF, HELP, OPEN_D_PIN
+    RED_ON, RED_OFF, GREEN_ON, GREEN_OFF, HELP, OPEN_D_PIN, CLOSE_D_PIN
 };
 
 static const char *COMMAND_STRING[] = {
-    "red on", "red off", "green on", "green off", "help", "open digital pin"
+    "red on", "red off", "green on", "green off", "help", "open digital pin", "close digital pin"
 };
 
 void read_USB_command(char *term, size_t msz) {
@@ -39,6 +39,8 @@ void exec_command_read(char *command_buffer) {
     help();
   } else if(!strcmp(COMMAND_STRING[OPEN_D_PIN], command_buffer)) {
     openDigitalPin();
+  } else if(!strcmp(COMMAND_STRING[CLOSE_D_PIN], command_buffer)) {
+    closeDigitalPin();
   } else {
     USB.print("Command '"); USB.print(strlwr(command_buffer)); USB.println("' not available.");
     help();
@@ -60,27 +62,45 @@ void help() {
   USB.println("| green on\t\tTurns on the green LED on the Waspmote                 |");
   USB.println("| green off\t\tTurns off the red LED on the Waspmote                  |");
   USB.println("| open digital pin\tTurns on the digital pin [1 - 8] on the Waspmote       |");
+  USB.println("| close digital pin\tTurns off the digital pin [1 - 8] on the Waspmote      |");
   USB.println("| help\t\t\tDisplays the allowed commands and its parameters       |");
   USB.println("================================================================================");
   USB.println();
 }
 
 void openDigitalPin() {
-  bool noParamPassed = true;
   USB.println("Which pin do you want to open? [1 - 8]");
-  while(noParamPassed) {
-    read_USB_command(command_buffer, BUFFER_SIZE);
-    const char* param = read_command_param(command_buffer);
-    const unsigned int pin = atoi(param);
+  
+  unsigned int pin = 0;
+
+  while(!pin) {
+    pin = atoi(get_command_param(command_buffer));
 
     if(!pin) {
       USB.println("Not a valid number");
-      continue;
+      USB.println("Which pin do you want to open? [1 - 8]");
     }
-
-    noParamPassed = false;
-    digitalWrite(pin, HIGH);
-    USB.println("Pin opened!");
   }
+
+  digitalWrite(pin, HIGH);
+  USB.print("Oppened pin "); USB.println(pin);
+}
+
+void closeDigitalPin() {
+  USB.println("Which pin do you want to close? [1 - 8]");
+  
+  unsigned int pin = 0;
+
+  while(!pin) {
+    pin = atoi(get_command_param(command_buffer));
+
+    if(!pin) {
+      USB.println("Not a valid number");
+      USB.println("Which pin do you want to close? [1 - 8]");
+    }
+  }
+
+  digitalWrite(pin, LOW);
+  USB.print("Closed pin "); USB.println(pin);
 }
 

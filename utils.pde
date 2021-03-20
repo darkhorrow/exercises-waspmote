@@ -10,3 +10,21 @@ void strip_extra_spaces(char* str) {
   }
 }
 
+char* get_command_param(char* command_buffer) {
+  char* param;
+  bool noParamPassed = true;
+  
+  while(noParamPassed) {
+    read_USB_command(command_buffer, BUFFER_SIZE);
+    param = read_command_param(command_buffer);
+
+    if (param && !param[0]) {
+      continue;
+    }
+
+    noParamPassed = false;
+  }
+
+  return param;
+}
+
