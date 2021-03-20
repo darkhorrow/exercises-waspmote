@@ -10,7 +10,9 @@ enum COMMAND {
     CLOSE_D_PIN,
     FREE_MEMORY,
     READ_EEPROM,
-    WRITE_EEPROM
+    WRITE_EEPROM,
+    RTC_GET_DATETIME,
+    RTC_SET_DATETIME
 };
 
 static const char *COMMAND_STRING[] = {
@@ -25,7 +27,9 @@ static const char *COMMAND_STRING[] = {
     "close digital pin",
     "memory available", 
     "read eeprom",
-    "write eeprom"
+    "write eeprom",
+    "get datetime",
+    "set datetime"
 };
 
 void read_USB_command(char *term, size_t msz) {
@@ -86,6 +90,12 @@ void exec_command_read(char *command_buffer) {
     return;
   } else if(!strcmp(COMMAND_STRING[WRITE_EEPROM], command_buffer)) {
     writeEEPROM();
+    return;
+  } else if(!strcmp(COMMAND_STRING[RTC_GET_DATETIME], command_buffer)) {
+    USB.print("RTC datetime: "); USB.println(RTC.getTime());
+    return;
+  } else if(!strcmp(COMMAND_STRING[RTC_SET_DATETIME], command_buffer)) {
+    setDateTime();
     return;
   } else {
     USB.print("Command '"); USB.print(strlwr(command_buffer)); USB.println("' not available.");
@@ -234,5 +244,86 @@ void writeEEPROM() {
   USB.print("EEPROM address="); USB.print(address); USB.print(" content="); USB.println(Utils.readEEPROM(address), DEC);
 }
 
+void setDateTime() {
+  USB.println("Insert new day [i.e 3 or 03]");
+  
+  int day = 0;
+  int month = 0;
+  int year = 0; 
+  int hour = -1;
+  int minute = -1;
+  int second = -1;
+
+  while(day <= 0 || day > 31) {
+    day = atoi(get_command_param(command_buffer));
+
+    if(day <= 0 || day > 31) {
+      USB.println("Not a valid day");
+      USB.println("Insert new day [i.e 3 or 03]");
+    }
+  }
+
+  USB.println("Insert new month [i.e 3 or 03]");
+
+  while(month <= 0 || month > 12) {
+    month = atoi(get_command_param(command_buffer));
+
+    if(month <= 0 || month > 12) {
+      USB.println("Not a valid month");
+      USB.println("Insert new month [i.e 3 or 03]");
+    }
+  }
+
+  USB.println("Insert new year [i.e 21]");
+
+  while(year <= 0 || year > 99) {
+    year = atoi(get_command_param(command_buffer));
+
+    if(year <= 0 || year > 99) {
+      USB.println("Not a valid year");
+      USB.println("Insert new year [i.e 21]");
+    }
+  }
+
+  USB.println("Insert new hour [i.e 21]");
+
+  while(hour <= -1 || hour > 23) {
+    hour = atoi(get_command_param(command_buffer));
+
+    if(hour <= -1 || hour > 23) {
+      USB.println("Not a valid hour");
+      USB.println("Insert new hour [i.e 21]");
+    }
+  }
+
+  USB.println("Insert new minute [i.e 21]");
+
+  while(minute <= -1 || minute > 59) {
+    minute = atoi(get_command_param(command_buffer));
+
+    if(minute <= -1 || minute > 59) {
+      USB.println("Not a valid minute");
+      USB.println("Insert new minute [i.e 21]");
+    }
+  }
+
+  USB.println("Insert new second [i.e 21]");
+
+  while(second <= -1 || second > 59) {
+    second = atoi(get_command_param(command_buffer));
+
+    if(second <= -1 || second > 59) {
+      USB.println("Not a valid second");
+      USB.println("Insert new second [i.e 21]");
+    }
+  }
+
+  char datetime[14];
+
+  sprintf(datetime, "%02u:%02u:%02u:%02u:%02u:%02u:%02u", year, month, day, RTC.dow(year, month, day), hour, minute, second);
+  RTC.setTime(datetime);
+
+  USB.print("RTC datetime: "); USB.println(RTC.getTime());
+}
 
 
