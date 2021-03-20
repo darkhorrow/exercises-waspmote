@@ -7,7 +7,8 @@ enum COMMAND {
     GREEN_BLINK, 
     HELP,
     OPEN_D_PIN,
-    CLOSE_D_PIN
+    CLOSE_D_PIN,
+    FREE_MEMORY
 };
 
 static const char *COMMAND_STRING[] = {
@@ -19,7 +20,8 @@ static const char *COMMAND_STRING[] = {
     "green blink", 
     "help", 
     "open digital pin", 
-    "close digital pin"
+    "close digital pin",
+    "memory available"
 };
 
 void read_USB_command(char *term, size_t msz) {
@@ -72,6 +74,9 @@ void exec_command_read(char *command_buffer) {
   } else if(!strcmp(COMMAND_STRING[GREEN_BLINK], command_buffer)) {
     blinkLed(LED1);
     return;
+  } else if(!strcmp(COMMAND_STRING[FREE_MEMORY], command_buffer)) {
+    USB.print("Current free memory: "); USB.print(freeMemory()); USB.println(" bytes");
+    return;
   } else {
     USB.print("Command '"); USB.print(strlwr(command_buffer)); USB.println("' not available.");
     help();
@@ -101,6 +106,7 @@ void help() {
   USB.println("| open digital pin\tTurns on the digital pin [1 - 8] on the Waspmote       |");
   USB.println("| close digital pin\tTurns off the digital pin [1 - 8] on the Waspmote      |");
   USB.println("================================================================================");
+  USB.println("| memory available\tDisplays the free memory available                     |");
   USB.println("| help\t\t\tDisplays the allowed commands and its parameters       |");
   USB.println("================================================================================");
   USB.println();
