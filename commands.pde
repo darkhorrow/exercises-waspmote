@@ -1,9 +1,25 @@
 enum COMMAND {
-    RED_ON, RED_OFF, GREEN_ON, GREEN_OFF, HELP, OPEN_D_PIN, CLOSE_D_PIN
+    RED_ON,
+    RED_OFF,
+    GREEN_ON,
+    GREEN_OFF,
+    RED_BLINK, 
+    GREEN_BLINK, 
+    HELP,
+    OPEN_D_PIN,
+    CLOSE_D_PIN
 };
 
 static const char *COMMAND_STRING[] = {
-    "red on", "red off", "green on", "green off", "help", "open digital pin", "close digital pin"
+    "red on", 
+    "red off", 
+    "green on", 
+    "green off", 
+    "red blink", 
+    "green blink", 
+    "help", 
+    "open digital pin", 
+    "close digital pin"
 };
 
 void read_USB_command(char *term, size_t msz) {
@@ -41,6 +57,10 @@ void exec_command_read(char *command_buffer) {
     openDigitalPin();
   } else if(!strcmp(COMMAND_STRING[CLOSE_D_PIN], command_buffer)) {
     closeDigitalPin();
+  } else if(!strcmp(COMMAND_STRING[RED_BLINK], command_buffer)) {
+    blinkLed(LED0);
+  } else if(!strcmp(COMMAND_STRING[GREEN_BLINK], command_buffer)) {
+    blinkLed(LED1);
   } else {
     USB.print("Command '"); USB.print(strlwr(command_buffer)); USB.println("' not available.");
     help();
@@ -59,8 +79,10 @@ void help() {
   USB.println("================================================================================");
   USB.println("| red on\t\tTurns on the red LED on the Waspmote                   |");
   USB.println("| red off\t\tTurns off the red LED on the Waspmote                  |");
+  USB.println("| red blink\t\tBlink the red LED on the Waspmote for the period and repetitions specified during the command use                 |");
   USB.println("| green on\t\tTurns on the green LED on the Waspmote                 |");
   USB.println("| green off\t\tTurns off the red LED on the Waspmote                  |");
+  USB.println("| green blink\t\tBlink the green LED on the Waspmote for the period and repetitions specified during the command use                 |");
   USB.println("| open digital pin\tTurns on the digital pin [1 - 8] on the Waspmote       |");
   USB.println("| close digital pin\tTurns off the digital pin [1 - 8] on the Waspmote      |");
   USB.println("| help\t\t\tDisplays the allowed commands and its parameters       |");
@@ -103,4 +125,39 @@ void closeDigitalPin() {
   digitalWrite(pin, LOW);
   USB.print("Closed pin "); USB.println(pin);
 }
+
+void blinkLed(int led) {
+  USB.println("Which is the blinking period? [in milliseconds]");
+
+  unsigned int period = 0;
+  unsigned int repetitions = 0;
+
+  while(!period) {
+    period = atoi(get_command_param(command_buffer));
+
+    if(!period) {
+      USB.println("Not a valid number");
+      USB.println("Which is the blinking period? [in milliseconds]");
+    }
+  }
+
+  USB.println("How many repitions will be done?");
+
+  while(!repetitions) {
+    repetitions = atoi(get_command_param(command_buffer));
+
+    if(!repetitions) {
+      USB.println("Not a valid number");
+      USB.println("How many repitions will be done?");
+    }
+  }
+
+  USB.println("Blinking...");
+
+  boolean isLedOn = Utils.getLED(led);
+  Utils.blinkRedLED(period, repetitions); 
+  if(isLedOn) Utils.setLED(led, LED_ON);
+}
+
+
 
