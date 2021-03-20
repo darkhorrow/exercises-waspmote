@@ -8,7 +8,9 @@ enum COMMAND {
     HELP,
     OPEN_D_PIN,
     CLOSE_D_PIN,
-    FREE_MEMORY
+    FREE_MEMORY,
+    READ_EEPROM,
+    WRITE_EEPROM
 };
 
 static const char *COMMAND_STRING[] = {
@@ -21,7 +23,9 @@ static const char *COMMAND_STRING[] = {
     "help", 
     "open digital pin", 
     "close digital pin",
-    "memory available"
+    "memory available", 
+    "read eeprom",
+    "write eeprom"
 };
 
 void read_USB_command(char *term, size_t msz) {
@@ -77,6 +81,12 @@ void exec_command_read(char *command_buffer) {
   } else if(!strcmp(COMMAND_STRING[FREE_MEMORY], command_buffer)) {
     USB.print("Current free memory: "); USB.print(freeMemory()); USB.println(" bytes");
     return;
+  } else if(!strcmp(COMMAND_STRING[READ_EEPROM], command_buffer)) {
+    readEEPROM();
+    return;
+  } else if(!strcmp(COMMAND_STRING[WRITE_EEPROM], command_buffer)) {
+    writeEEPROM();
+    return;
   } else {
     USB.print("Command '"); USB.print(strlwr(command_buffer)); USB.println("' not available.");
     help();
@@ -105,6 +115,9 @@ void help() {
   USB.println("================================================================================");
   USB.println("| open digital pin\tTurns on the digital pin [1 - 8] on the Waspmote       |");
   USB.println("| close digital pin\tTurns off the digital pin [1 - 8] on the Waspmote      |");
+  USB.println("================================================================================");
+  USB.println("| read eeprom\t\tRead an uint8_t value in a specific EEPROM position    |");
+  USB.println("| write eeprom\t\tWrite an uint8_t value in a specific EEPROM position   |");
   USB.println("================================================================================");
   USB.println("| memory available\tDisplays the free memory available                     |");
   USB.println("| help\t\t\tDisplays the allowed commands and its parameters       |");
@@ -135,10 +148,10 @@ void closeDigitalPin() {
   
   int pin = 0;
 
-  while(pin <= 0) {
+  while(pin <= 0 || pin > 8) {
     pin = atoi(get_command_param(command_buffer));
 
-    if(pin <= 0) {
+    if(pin <= 0 || pin > 8) {
       USB.println("Not a valid number");
       USB.println("Which pin do you want to close? [1 - 8]");
     }
@@ -179,6 +192,46 @@ void blinkLed(int led) {
   boolean isLedOn = Utils.getLED(led);
   led == LED0 ? Utils.blinkRedLED(period, repetitions) : Utils.blinkGreenLED(period, repetitions);
   if(isLedOn) Utils.setLED(led, LED_ON);
+}
+
+void readEEPROM() {
+  USB.println("Which is the address position to read? [1024 - 4096]");
+
+  int address = 0;
+
+  while(address < 1024 || address > 4096) {
+    address = atoi(get_command_param(command_buffer));
+
+    if(address < 1024 || address > 4096) {
+      USB.println("Not a valid number");
+      USB.println("Which is the address position to read? [1024 - 4096]");
+    }
+  }
+
+  USB.print("EEPROM address="); USB.print(address); USB.print(" content="); USB.println(Utils.readEEPROM(address), DEC);
+}
+
+void writeEEPROM() {
+  USB.println("Which is the address position to write? [1024 - 4096]");
+
+  int address = 0;
+  uint8_t value;
+
+  while(address < 1024 || address > 4096) {
+    address = atoi(get_command_param(command_buffer));
+
+    if(address < 1024 || address > 4096) {
+      USB.println("Not a valid number");
+      USB.println("Which is the address position to write? [1024 - 4096]");
+    }
+  }
+
+  USB.println("Which is the value to store? [any uint8_t value]");
+  
+  value = atoi(get_command_param(command_buffer));
+
+  Utils.writeEEPROM(address, value);
+  USB.print("EEPROM address="); USB.print(address); USB.print(" content="); USB.println(Utils.readEEPROM(address), DEC);
 }
 
 
