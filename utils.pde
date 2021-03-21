@@ -25,6 +25,8 @@ char* get_command_param(char* command_buffer) {
     noParamPassed = false;
   }
 
+  USB.print("> "); USB.println(param);
+
   return param;
 }
 

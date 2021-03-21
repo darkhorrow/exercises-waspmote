@@ -12,7 +12,8 @@ enum COMMAND {
     READ_EEPROM,
     WRITE_EEPROM,
     RTC_GET_DATETIME,
-    RTC_SET_DATETIME
+    RTC_SET_DATETIME,
+    BLINK_EEPROM
 };
 
 static const char *COMMAND_STRING[] = {
@@ -29,7 +30,8 @@ static const char *COMMAND_STRING[] = {
     "read eeprom",
     "write eeprom",
     "get datetime",
-    "set datetime"
+    "set datetime",
+    "blink eeprom"
 };
 
 int digitalPins[] = {DIGITAL1, DIGITAL2, DIGITAL3, DIGITAL4, DIGITAL5, DIGITAL6, DIGITAL7, DIGITAL8};
@@ -99,6 +101,9 @@ void exec_command_read(char *command_buffer) {
   } else if(!strcmp(COMMAND_STRING[RTC_SET_DATETIME], command_buffer)) {
     setDateTime();
     return;
+  } else if(!strcmp(COMMAND_STRING[BLINK_EEPROM], command_buffer)) {
+    blinkEEPROM();
+    return;
   } else {
     USB.print("Command '"); USB.print(strlwr(command_buffer)); USB.println("' not available.");
     help();
@@ -130,6 +135,12 @@ void help() {
   USB.println("================================================================================");
   USB.println("| read eeprom\t\tRead an uint8_t value in a specific EEPROM position    |");
   USB.println("| write eeprom\t\tWrite an uint8_t value in a specific EEPROM position   |");
+  USB.println("================================================================================");
+  USB.println("| blink eeprom\t\tBlink a specified LED [1 - 8] as many times as in the  |");
+  USB.println("|              \t\tEEPROM address specified                               |");
+  USB.println("================================================================================");
+  USB.println("| get datetime\t\tDisplays the date and time in the RTC                  |");
+  USB.println("| set datetime\t\tSets the date and time in the RTC                      |");
   USB.println("================================================================================");
   USB.println("| memory available\tDisplays the free memory available                     |");
   USB.println("| help\t\t\tDisplays the allowed commands and its parameters       |");
@@ -326,6 +337,57 @@ void setDateTime() {
   RTC.setTime(datetime);
 
   USB.print("RTC datetime: "); USB.println(RTC.getTime());
+}
+
+void blinkEEPROM() {
+   USB.println("Which pin do you want to blink? [1 - 8]");
+
+  int period = 0;
+  int repetitions = 0;
+  int pin = 0;
+  int address = 0;
+
+  while(pin <= 0) {
+    pin = atoi(get_command_param(command_buffer));
+
+    if(pin <= 0) {
+      USB.println("Not a valid number");
+      USB.println("Which pin do you want to blink? [1 - 8]");
+    }
+  }
+
+  USB.println("Which is the blinking period? [in milliseconds]");
+
+  while(period <= 0) {
+    period = atoi(get_command_param(command_buffer));
+
+    if(period <= 0) {
+      USB.println("Not a valid number");
+      USB.println("Which is the blinking period? [in milliseconds]");
+    }
+  }
+
+  USB.println("Which is the address position to read? [1024 - 4096]");
+
+  while(address < 1024 || address > 4096) {
+    address = atoi(get_command_param(command_buffer));
+
+    if(address < 1024 || address > 4096) {
+      USB.println("Not a valid number");
+      USB.println("Which is the address position to read? [1024 - 4096]");
+    }
+  }
+
+  repetitions = Utils.readEEPROM(address);
+
+  USB.println("Blinking...");
+
+  for(int i = repetitions; i >= 0; i--) {
+    digitalWrite(digitalPins[pin - 1], HIGH);
+    delay(period/2);
+    digitalWrite(digitalPins[pin - 1], LOW);
+    delay(period/2);
+  }
 }
 
 
