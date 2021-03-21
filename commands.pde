@@ -32,6 +32,8 @@ static const char *COMMAND_STRING[] = {
     "set datetime"
 };
 
+int digitalPins[] = {DIGITAL1, DIGITAL2, DIGITAL3, DIGITAL4, DIGITAL5, DIGITAL6, DIGITAL7, DIGITAL8};
+
 void read_USB_command(char *term, size_t msz) {
   int8_t sz = 0;
   unsigned long init = millis();
@@ -149,7 +151,7 @@ void openDigitalPin() {
     }
   }
 
-  digitalWrite(pin, HIGH);
+  digitalWrite(digitalPins[pin - 1], HIGH);
   USB.print("Oppened pin "); USB.println(pin);
 }
 
@@ -167,7 +169,7 @@ void closeDigitalPin() {
     }
   }
 
-  digitalWrite(pin, LOW);
+  digitalWrite(digitalPins[pin - 1], LOW);
   USB.print("Closed pin "); USB.println(pin);
 }
 

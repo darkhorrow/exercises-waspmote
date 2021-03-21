@@ -3,6 +3,14 @@ char command_buffer[BUFFER_SIZE];
 
 void setup() {
   USB.ON();
+  pinMode(DIGITAL1, OUTPUT);
+  pinMode(DIGITAL2, OUTPUT);
+  pinMode(DIGITAL3, OUTPUT);
+  pinMode(DIGITAL4, OUTPUT);
+  pinMode(DIGITAL5, OUTPUT);
+  pinMode(DIGITAL6, OUTPUT);
+  pinMode(DIGITAL7, OUTPUT);
+  pinMode(DIGITAL8, OUTPUT);
   help();
 }
 
