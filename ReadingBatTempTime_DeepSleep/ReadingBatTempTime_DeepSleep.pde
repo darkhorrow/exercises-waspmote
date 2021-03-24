@@ -5,6 +5,37 @@
    active delay loop.
    ------------------------------------------------------------
  */
+
+void AwaitGesture()
+{
+  unsigned long previous;
+  
+  USB.println("Awaiting gesture ...");
+
+  // Enable interruption: Inertial Wake Up
+  ACC.setIWU();
+
+  // Reset accounting
+  
+  // Check interruptions 
+  if (intFlag & ACC_INT) 
+  {  
+    // clear the accelerometer interrupt flag on 
+    // the general interrupt vector 
+    intFlag &= ~(ACC_INT); 
+    
+    USB.println("\t -- ACC Interrupt received");
+    
+    // Deactivate IWU
+    ACC.unsetIWU();
+    return;
+  } 
+  else if(intFlag & RTC_INT) 
+  {
+    intFlag &= ~(RTC_INT);
+    USB.println("\t -- RTC Interrupt received");
+  }
+}
    
 void setup()
 {
@@ -28,7 +59,6 @@ void setup()
 
   // Enable interruption: Inertial Wake Up
   ACC.ON();
-  ACC.setIWU();
 }
 
 void loop()
@@ -41,6 +71,8 @@ void loop()
   // Re-init modules
   // This is necessary if we use ALL_OFF in PWR.deepSleep
   USB.ON(); 
+
+  AwaitGesture();
   
   // Print cycle  
   USB.print(F("Cycle: "));
