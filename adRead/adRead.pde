@@ -1,6 +1,6 @@
 #define BUFFER_LENGTH 25
 
-#define MAX_MILLIVOLTS 5000
+#define MAX_MILLIVOLTS 3300
 #define MAX_AD_SAMPLE_VALUE 1023
 
 #define AD_PIN ANALOG3
@@ -101,6 +101,7 @@ void takeADSample(
   *pSampleTime=millis()-g_startingTime;
   *pSample=analogRead(adPin);
   *pMilliVolts=(*pSample)*MAX_MILLIVOLTS/MAX_AD_SAMPLE_VALUE;
+  USB.print(F("AD sample: ")); USB.print(pSample,DEC);
 }
 
 void printADSample(
