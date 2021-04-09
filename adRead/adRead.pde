@@ -4,7 +4,7 @@
 #define MAX_AD_SAMPLE_VALUE 1023
 
 #define AD_PIN ANALOG3
-#define AD_PSEUDO_PERIOD 1000 // milliseconds
+#define AD_PSEUDO_PERIOD 100 // milliseconds
 
 #define AD_SAMPLE_FILE "samples.txt"
 #define AD_SAMPLE_FILE_HEADER_INFO "# data format:\n# time voltage\n# (msecs) (mvolts)"
