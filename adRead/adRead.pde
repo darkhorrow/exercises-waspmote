@@ -101,7 +101,6 @@ void takeADSample(
   *pSampleTime=millis()-g_startingTime;
   *pSample=analogRead(adPin);
   *pMilliVolts=(*pSample)*MAX_MILLIVOLTS/MAX_AD_SAMPLE_VALUE;
-  USB.print(F("AD sample: ")); USB.print(pSample,DEC);
 }
 
 void printADSample(
