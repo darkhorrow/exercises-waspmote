@@ -1,3 +1,6 @@
+#define SINE_STEP 0.01
+#define SINE_MEAN_PWM 127
+
 #define BUFFER_LENGTH 25
 
 #define MAX_MILLIVOLTS 3300
@@ -99,6 +102,11 @@ unsigned char nextPWMValue(unsigned char value,unsigned char& the_state)
   );
 }
 
+double nextSineValue(double value)
+{
+  return sin(value)*SINE_MEAN_PWM+SINE_MEAN_PWM;
+}
+
 unsigned char updateLed(unsigned char the_led,unsigned char the_state)
 { Utils.setLED(the_led,the_state); return ((the_state==LED_ON)? LED_OFF: LED_ON); }
 
@@ -140,17 +148,16 @@ void loop()
 {  
   g_ledState=updateLed(THE_LED,g_ledState);
   
-  //generating signal
-  //USB.print("setting PWM output: ");
-  //USB.println(g_pwmValue,DEC);
-  analogWrite(DIGITAL1,g_pwmValue);
-  g_pwmValue=nextPWMValue(g_pwmValue,g_pwmState);
+  static double value = 0.0;
   
-  //sampling signal
-  unsigned long sampleTime, sample, milliVolts;  
+  unsigned long sampleTime, sample, milliVolts;
+  analogWrite(DIGITAL1,g_pwmValue);
+  g_pwmValue=nextSineValue(value);
   takeADSample(sampleTime,sample,milliVolts,AD_PIN);
   printADSample(sampleTime,sample,milliVolts);
   saveADSample(AD_SAMPLE_FILE,sampleTime,milliVolts);
+  
+  value +=0.01;
   
   if(sampleTime>AD_RECORDING_TIME) { finishing(); exit(0); }
 }
