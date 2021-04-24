@@ -10,6 +10,10 @@ y = data(:, 2);
 figure(1);
 
 plot(x, y);
+xlabel('Tiempo (s)');
+ylabel('Voltaje (mV)');
+title('Mediciones genAnalog');
+
 
 amplitude = max(y);
 
@@ -30,9 +34,11 @@ end
 figure(2);
 
 plot(filtered_x, filtered_y);
+xlabel('Tiempo (s)');
+ylabel('Voltaje (mV)');
+title('Filtrado de genAnalog');
 
-noise_ratio_mV = (sqrt(mean(y.^2))/sqrt(mean(filtered_y.^2)));
-
+noise_ratio_mV = rms(y)/rms(filtered_y);
 noise_ratio_dB = snr(rms(y), rms(filtered_y));
 
 data_sine = readmatrix('SAMPLES_SINE.TXT');
@@ -43,3 +49,6 @@ y_sine = data_sine(:, 2);
 figure(3);
 
 plot(x_sine, y_sine);
+xlabel('Tiempo (s)');
+ylabel('Voltaje (mV)');
+title('Señal sinusoidal genAnalog');
