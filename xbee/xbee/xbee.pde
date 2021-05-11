@@ -1,14 +1,17 @@
 #include <WaspXBee802.h>
 #include <string.h>
+#include <stdio.h> 
+#include <stdlib.h>
 
 #define RED_LED   LED0
 #define GREEN_LED LED1
 
-#define BROADCAST_MAC  "000000000000FFFF"
-#define MY_MAC         "0013A20041C3A321"
-
-#define MAX_LENGTH        110
+#define MAX_LENGTH        20
 #define RECEIVER_TIMEOUT  500UL
+
+#define BROADCAST_MAC  "000000000000FFFF"
+
+#define ACC_THRESHOLD 1000
 
 #define _DEBUG_COMM_
 
@@ -24,12 +27,49 @@ void AwaitGesture()
     // the general interrupt vector
     intFlag &= ~(ACC_INT);
 
-    USB.println("\t -- ACC Interrupt received");
+    USB.println("-- ACC Interrupt received");
+
+    USB.println("Sending data...");
+
+    int8_t err;
+
+    RTC.ON();
+    int battery_level = (int) PWR.getBatteryLevel();
+    char* message = RTC.getTime();
+    char bt[2] = "";
+    sprintf(bt, "%d%%\n", battery_level);
+    strcat(message, "\nBattery level: ");
+    strcat(message, bt);
+    int ax, ay, az;
+
+    ax = ACC.getX();
+    ay = ACC.getY();
+    az = ACC.getZ();
+
+    char acc[4] = "";
+    sprintf(acc, "ACC X = %d", ax);
+    strcat(message, acc);
+    sprintf(acc, "\tACC Y = %d", ay);
+    strcat(message, acc);
+    sprintf(acc, "\tACC Z = %d\n", ay);
+    strcat(message, acc);
+
+    if (err = commInit(0))
+    {
+      USB.println(F("Radio failed. Exiting ..."));
+      exit(0);
+    }
+    USB.println(F("\nRadio initialized"));
+
+    err = sendTextPacket(BROADCAST_MAC, message);
+
+    commShutdown();
+    
   }
   else if (intFlag & RTC_INT)
   {
     intFlag &= ~(RTC_INT);
-    USB.println("\t -- RTC Interrupt received");
+    USB.println("-- RTC Interrupt received");
 
     uint8_t err;
     // Activate the XBee radio.
@@ -102,7 +142,7 @@ void setup()
 
   // Enable interruption: Inertial Wake Up
   ACC.ON();
-  ACC.setIWU();
+  ACC.setIWU(ACC_THRESHOLD);
 }
 
 
@@ -122,12 +162,13 @@ void loop()
 
     err = 1;
 
-    char data[MAX_LENGTH + 1];
+    char data[MAX_LENGTH+1];
     char from[17];
     static uint16_t np = 0;
 
     while (err > 0) {
       err = receiveTextPacket(from, data, RECEIVER_TIMEOUT);
+      delay(500);
     }
 
     commShutdown();
@@ -137,6 +178,7 @@ void loop()
       np++;
       RTC.setTime(data);
       USB.printf("Time to sleep: %s\n", sleep_time);
+      USB.printf("RTC Time: %s\n", RTC.getTime());
       USB.printf("Packet received from %s\n", from);
       USB.print(np);
       USB.println(F(" packets received correctly"));

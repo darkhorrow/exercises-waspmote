@@ -99,7 +99,7 @@ int8_t receiveTextPacket(char *from, char *data, uint32_t maxWaitTimeMS)
              xbee802._srcMAC[0],xbee802._srcMAC[1],xbee802._srcMAC[2],xbee802._srcMAC[3],
              xbee802._srcMAC[4],xbee802._srcMAC[5],xbee802._srcMAC[6],xbee802._srcMAC[7]);
 			 
-	snprintf(data, xbee802._length, "%s", xbee802._payload);
+	snprintf(data, xbee802._length+1, "%s", xbee802._payload);
              
     // Show data stored in '_payload' buffer indicated by '_length'
     USB.println(F("\n------------- Packet received -------------"));
