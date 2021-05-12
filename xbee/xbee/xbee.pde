@@ -175,8 +175,7 @@ void loop()
       USB.printf("Time to sleep: %s\n", sleep_time);
       USB.printf("RTC Time: %s\n", RTC.getTime());
       USB.printf("Packet received from %s\n", SENDER_MAC);
-      USB.print(np);
-      USB.println(F(" packets received correctly"));
+      USB.print(np); USB.println(F(" packets received correctly"));
       RTC_DATA = true;
     }
   }
