@@ -9,14 +9,14 @@
 #define MAX_LENGTH        20
 #define RECEIVER_TIMEOUT  500UL
 
-#define BROADCAST_MAC  "000000000000FFFF"
-
 #define ACC_THRESHOLD 1000
 
 #define _DEBUG_COMM_
 
 char* sleep_time = "00:00:00:60";
 bool RTC_DATA = false;
+
+char SENDER_MAC[17];
 
 void AwaitGesture()
 {
@@ -61,7 +61,7 @@ void AwaitGesture()
     }
     USB.println(F("\nRadio initialized"));
 
-    err = sendTextPacket(BROADCAST_MAC, message);
+    err = sendTextPacket(SENDER_MAC, message);
 
     commShutdown();
     
@@ -105,11 +105,6 @@ void AwaitGesture()
         USB.print(n, DEC);
         USB.print(F(": "));
         USB.println(xbee802.scannedBrothers[n].NI);
-
-        // This is a bad idea for printing the MAC address
-        USB.print(F("\tMAC: 0x"));
-        for (b = 0; b < 4; b++) USB.printf("%02X", xbee802.scannedBrothers[n].SH[b], HEX);
-        for (b = 0; b < 4; b++) USB.printf("%02X", xbee802.scannedBrothers[n].SL[b], HEX);
 
         // Alternative for printing the MAC address
         mac2char(mac, &xbee802.scannedBrothers[n]);
@@ -163,11 +158,11 @@ void loop()
     err = 1;
 
     char data[MAX_LENGTH+1];
-    char from[17];
     static uint16_t np = 0;
 
     while (err > 0) {
-      err = receiveTextPacket(from, data, RECEIVER_TIMEOUT);
+      err = receiveTextPacket(SENDER_MAC, data, RECEIVER_TIMEOUT);
+      
       delay(500);
     }
 
@@ -179,7 +174,7 @@ void loop()
       RTC.setTime(data);
       USB.printf("Time to sleep: %s\n", sleep_time);
       USB.printf("RTC Time: %s\n", RTC.getTime());
-      USB.printf("Packet received from %s\n", from);
+      USB.printf("Packet received from %s\n", SENDER_MAC);
       USB.print(np);
       USB.println(F(" packets received correctly"));
       RTC_DATA = true;
