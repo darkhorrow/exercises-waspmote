@@ -18,95 +18,51 @@ bool RTC_DATA = false;
 
 char SENDER_MAC[17];
 
+void SendData() {
+  USB.println("Sending data...");
+
+  int8_t err;
+
+  RTC.ON();
+  int battery_level = (int) PWR.getBatteryLevel();
+  char message[MAX_LENGTH]; 
+  int ax, ay, az;
+
+  ax = ACC.getX();
+  ay = ACC.getY();
+  az = ACC.getZ();
+
+  snprintf(message, MAX_LENGTH, "%s\nBattery level: %d%%\nACC X: %d\tACC Y:%d\tACC Z: %d\n", RTC.getTime(), battery_level, ax, ay, az);
+
+  if (err = commInit(0))
+  {
+    USB.println(F("Radio failed. Exiting ..."));
+    exit(0);
+  }
+  USB.println(F("\nRadio initialized"));
+
+  err = sendTextPacket(SENDER_MAC, message);
+}
+
 void AwaitGesture()
 {
   // Check interruptions 
   if (intFlag & ACC_INT)
   {
-  
     // clear the accelerometer interrupt flag on
     // the general interrupt vector
     intFlag &= ~(ACC_INT);
 
     USB.println("-- ACC Interrupt received");
-
-    USB.println("Sending data...");
-
-    int8_t err;
-
-    RTC.ON();
-    int battery_level = (int) PWR.getBatteryLevel();
-    char message[MAX_LENGTH]; 
-    int ax, ay, az;
-
-    ax = ACC.getX();
-    ay = ACC.getY();
-    az = ACC.getZ();
-
-    snprintf(message, MAX_LENGTH, "%s\nBattery level: %d%%\nACC X: %d\tACC Y:%d\tACC Z: %d\n", RTC.getTime(), battery_level, ax, ay, az);
-
-    if (err = commInit(0))
-    {
-      USB.println(F("Radio failed. Exiting ..."));
-      exit(0);
-    }
-    USB.println(F("\nRadio initialized"));
-
-    err = sendTextPacket(SENDER_MAC, message);
+    
+    SendData();
   }
   else if (intFlag & RTC_INT)
   {
     intFlag &= ~(RTC_INT);
     USB.println("-- RTC Interrupt received");
 
-    uint8_t err;
-    // Activate the XBee radio.
-    // Set power level at minimum (0)
-    if (err = commInit(0))
-    {
-      USB.println(F("Radio failed. Exiting ..."));
-      exit(0);
-    }
-    USB.println(F("\nRadio initialized"));
-
-    // Let's discover nearby radios
-    uint32_t init_time = millis();
-
-    err = xbee802.scanNetwork();
-    if (err)
-    {
-      USB.print(F("(\nscanNetwork failed with error "));
-      USB.println(err, DEC);
-    }
-    else
-    {
-      uint8_t n, b;
-      char mac[17];
-
-      USB.print(F("\n\nTotal radios detected after "));
-      USB.printf("%u msec: ", millis() - init_time);
-      USB.println(xbee802.totalScannedBrothers, DEC);
-
-      for (n = 0; n < xbee802.totalScannedBrothers; n++)
-      {
-        USB.print(F("Node "));
-        USB.print(n, DEC);
-        USB.print(F(": "));
-        USB.println(xbee802.scannedBrothers[n].NI);
-
-        // Alternative for printing the MAC address
-        mac2char(mac, &xbee802.scannedBrothers[n]);
-        USB.print(F("\n\tMAC: 0x"));
-        USB.print(mac);
-
-        USB.print(F("\n\tDevice type: "));
-        USB.print(xbee802.scannedBrothers[n].DT, DEC);
-
-        USB.print(F("\n\tRSSI: "));
-        USB.print(-xbee802.scannedBrothers[n].RSSI, DEC);
-        USB.println(F(" dBi"));
-      }
-    }
+    SendData();
   }
 }
 
