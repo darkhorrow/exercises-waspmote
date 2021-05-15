@@ -23,6 +23,18 @@ if __name__ == '__main__':
     device.add_data_received_callback(receive_mote_data)
 
     while True:
+        xnet = device.get_network()
+        xnet.start_discovery_process(deep=True, n_deep_scans=1)
+
+        while xnet.is_discovery_running():
+            sleep(0.5)
+
+        if len(xnet.get_devices()) == 0:
+            print("No devices found in this scan")
+
+        for mote in xnet.get_devices():
+            print(f'Device found: {mote.get_64bit_addr()}')
+
         send_timestamp(device)
         sleep(SLEEP_TIME)
-        print('Awaken!')
+        print('New polling starting now!')
