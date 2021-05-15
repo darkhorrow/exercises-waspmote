@@ -6,7 +6,7 @@
 #define RED_LED   LED0
 #define GREEN_LED LED1
 
-#define MAX_LENGTH        20
+#define MAX_LENGTH        1024
 #define RECEIVER_TIMEOUT  500UL
 
 #define ACC_THRESHOLD 1000
@@ -20,9 +20,10 @@ char SENDER_MAC[17];
 
 void AwaitGesture()
 {
-  // Check interruptions
+  // Check interruptions 
   if (intFlag & ACC_INT)
   {
+  
     // clear the accelerometer interrupt flag on
     // the general interrupt vector
     intFlag &= ~(ACC_INT);
@@ -35,24 +36,14 @@ void AwaitGesture()
 
     RTC.ON();
     int battery_level = (int) PWR.getBatteryLevel();
-    char* message = RTC.getTime();
-    char bt[2] = "";
-    sprintf(bt, "%d%%\n", battery_level);
-    strcat(message, "\nBattery level: ");
-    strcat(message, bt);
+    char message[MAX_LENGTH]; 
     int ax, ay, az;
 
     ax = ACC.getX();
     ay = ACC.getY();
     az = ACC.getZ();
 
-    char acc[4] = "";
-    sprintf(acc, "ACC X = %d", ax);
-    strcat(message, acc);
-    sprintf(acc, "\tACC Y = %d", ay);
-    strcat(message, acc);
-    sprintf(acc, "\tACC Z = %d\n", ay);
-    strcat(message, acc);
+    snprintf(message, MAX_LENGTH, "%s\nBattery level: %d%%\nACC X: %d\tACC Y:%d\tACC Z: %d\n", RTC.getTime(), battery_level, ax, ay, az);
 
     if (err = commInit(0))
     {
@@ -62,9 +53,6 @@ void AwaitGesture()
     USB.println(F("\nRadio initialized"));
 
     err = sendTextPacket(SENDER_MAC, message);
-
-    commShutdown();
-    
   }
   else if (intFlag & RTC_INT)
   {
@@ -137,13 +125,13 @@ void setup()
 
   // Enable interruption: Inertial Wake Up
   ACC.ON();
-  ACC.setIWU(ACC_THRESHOLD);
 }
 
 
 void loop()
 {
   USB.ON();
+  ACC.setIWU(ACC_THRESHOLD);
 
   uint8_t err;
 
@@ -166,8 +154,6 @@ void loop()
       delay(500);
     }
 
-    commShutdown();
-
     if (err == 0)
     {
       np++;
@@ -179,7 +165,7 @@ void loop()
       RTC_DATA = true;
     }
   }
-
+  
   AwaitGesture();
 
   PWR.deepSleep(sleep_time, RTC_OFFSET, RTC_ALM1_MODE2, ALL_OFF);
